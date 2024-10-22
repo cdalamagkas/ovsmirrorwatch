@@ -1,0 +1,6 @@
+netaddr==1.3.0
+ovs==3.4.0
+ovspy==0.1.0b2
+pbr==6.1.0
+six==1.16.0
+sortedcontainers==2.4.0
