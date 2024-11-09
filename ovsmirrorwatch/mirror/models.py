@@ -8,4 +8,5 @@ class OVSMirror(models.Model):
     src_ports = models.ManyToManyField(OVSPort, related_name='src_ports_mirror')
     dst_ports = models.ManyToManyField(OVSPort, related_name='dst_ports_mirror')
     out_port = models.ForeignKey(OVSPort, on_delete=models.SET_NULL, null=True)
+    health = models.BooleanField(default=None, null=True)
     description = models.TextField()

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_css %}
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@9.2.1/dist/style.min.css" rel="stylesheet" />
+{% endblock page_css %}
+
+{% block content %}
+
+    <div class="row ">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Mirrors</h5>
+                    <table id="datatable_mirror" class="table table-bordered table-hover dataTable" style="word-break: break-all;">
+                    <thead>
+                        <tr>
+                            <th>Edit</th>
+                            <th class="sorting">Mirror Name</th>
+                            <th class="sorting">Source Ports</th>
+                            <th class="sorting">Destination Ports</th>
+                            <th class="sorting">Output Port</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row ">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Bridges</h5>
+                    <table id="datatable_bridge" class="table table-bordered table-hover dataTable" style="word-break: break-all;">
+                    <thead>
+                        <tr>
+                            <th>Edit</th>
+                            <th class="sorting">Name</th>
+                            <th class="sorting">Friendly Name</th>
+                            <th class="sorting">OVSDB Manager</th>
+                            <th class="sorting">Attached Ports</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+  
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ports</h5>
+                    <table id="datatable_port" class="table table-bordered table-hover dataTable" style="word-break: break-all;">
+                    <thead>
+                        <tr>
+                            <th>Edit</th>
+                            <th class="sorting">Port Name</th>
+                            <th class="sorting">Friendly Name</th>
+                            <th class="sorting">Parent Bridge</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+  
+
+{% endblock content %}
+
+{% block page_js %}
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.2.1/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+        const datatable_mirror = new simpleDatatables.DataTable("#datatable_mirror");
+        const datatable_bridge = new simpleDatatables.DataTable("#datatable_bridge");
+        const datatable_port = new simpleDatatables.DataTable("#datatable_port");
+
+        // Populate Mirrors
+        var xhttp_mirrors = new XMLHttpRequest();
+        xhttp_mirrors.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                let data = JSON.parse(this.responseText);
+                var data_to_datatable = [];
+                console.log(data);
+                for (let i=0; i<data.length; i++) {                    
+                    datatable_mirror.rows.add([
+                        "<a href='/mirror/edit/" + data[i]["name"] + "'><i class='fas fa-arrow-circle-right'></i></a>",
+                        data[i]["name"],
+                        data[i]["src_ports"].toString(),
+                        data[i]["dst_ports"].toString(),
+                        data[i]["out_port"],
+                        "<a href='/mirror/delete/" + data[i]["name"] + "'><i style='color: red;' class='fas fa-minus-circle'></i></a>"
+                    ]);
+                }
+            }
+        };
+        xhttp_mirrors.open("GET", "/api/mirror/?format=json", true);
+        xhttp_mirrors.send();
+
+        // Populate Bridges
+        var xhttp_bridges = new XMLHttpRequest();
+        xhttp_bridges.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                let data = JSON.parse(this.responseText);
+                var data_to_datatable = []
+                for (let i=0; i<data.length; i++) {                    
+                    datatable_bridge.rows.add([
+                        "<a href='/bridge/edit/" + data[i]["id"] + "'><i class='fas fa-arrow-circle-right'></i></a>",
+                        data[i]["ovs_name"],
+                        data[i]["friendly_name"],
+                        data[i]["ovsdb_manager"],
+                        data[i]["ports"],
+                        "<a href='/mirror/delete/" + data[i]["id"] + "'><i style='color: red;' class='fas fa-minus-circle'></i></a>"
+                    ]);
+                }
+            }
+        };
+        xhttp_bridges.open("GET", "/api/bridge/?format=json", true);
+        xhttp_bridges.send();
+
+
+        // Populate Ports
+        var xhttp_ports = new XMLHttpRequest();
+        xhttp_ports.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                let data = JSON.parse(this.responseText);
+                var data_to_datatable = []
+                for (let i=0; i<data.length; i++) {                    
+                    datatable_port.rows.add([
+                        "<a href='/port/edit/" + data[i]["ovs_name"] + "'><i class='fas fa-arrow-circle-right'></i></a>",
+                        data[i]["ovs_name"],
+                        data[i]["friendly_name"],
+                        data[i]["bridge"],
+                        "<a href='/port/delete/" + data[i]["ovs_name"] + "'><i style='color: red;' class='fas fa-minus-circle'></i></a>"
+                    ]);
+                }
+            }
+        };
+        xhttp_ports.open("GET", "/api/port/?format=json", true);
+        xhttp_ports.send();
+
+    </script>
+
+{% endblock page_js %}

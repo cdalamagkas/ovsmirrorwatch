@@ -30,8 +30,8 @@ def add_manager(request):
             return redirect('manager-manage')
     else:
         form = ManagerForm()
-    title = "Create New Manager"
-    return render(request, 'manager/add.html', {'form': form, 'title': title})
+    title = "Create New OVSDB Manager"
+    return render(request, 'add-edit.html', {'form': form, 'title': title})
 
 
 @login_required
@@ -71,7 +71,7 @@ def edit_manager(request):
             messages.success(request, f'The OVSDB Manager "{edited_manager.name}" has been updated')
             return redirect('manager-manage')
         else:
-            messages.error(request, f'The ID Tag could not be updated. Please try again')
+            messages.error(request, f'The OVSDB Manager could not be updated. Please try again')
             return redirect('manager-manage')        
     else:
         # Load form to update the OVSDB Manager
@@ -80,17 +80,16 @@ def edit_manager(request):
         title = 'Update OVSDB Manager'
 
         context = {
-            'manager_form': manager_form,
+            'form': manager_form,
             'title': title,
         }
 
-        return render(request, 'manager/edit.html', context)
+        return render(request, 'add-edit.html', context)
 
 
 ##########
 
 class ManagerApiView(ListCreateAPIView):
-    authentication_classes = []
     serializer_class = ManagerSerializer
     queryset = OVSManager.objects.all()
     
@@ -107,7 +106,6 @@ class ManagerApiView(ListCreateAPIView):
 
 
 class ManagerDetailApiView(RetrieveUpdateDestroyAPIView):
-    authentication_classes = []
     serializer_class = ManagerSerializer
     lookup_url_kwarg = 'name'
     queryset = OVSManager.objects.all()

@@ -36,6 +36,26 @@
         {% block site_css %}
             <!-- Theme style -->
             <link rel="stylesheet" href="{% static 'dist/css/styles.css' %}" />
+            <style>
+                .fa-sm {
+                    font-size:0.63em;
+                }
+                .fa-stack {
+                    position: relative;
+                    display: inline-block;
+                }
+
+                .botton-right {
+                    position: absolute;
+                    bottom: -40%; /* Adjust to align it better */
+                    right: -40%;  /* Adjust to align it better */
+                    z-index: 1;
+                    opacity: 1.0;
+                    color: grey; 
+                    font-size: 1em; /* Scale down the second icon to fit */
+                }
+            </style>
+
             <!--
                 <style type="text/css">
                     .card-header {

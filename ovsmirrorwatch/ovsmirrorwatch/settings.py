@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'celery',
     'django_celery_results',
     'rest_framework',
-    #'drf_spectacular',
+    'drf_spectacular',
 
 ]
 
@@ -200,9 +200,30 @@ from celery.schedules import crontab
 import ovsmirrorwatch.tasks
 
 
-CELERY_BEAT_SCHEDULE = {
-    "sample_task": {
-        "task": "ovsmirrorwatch.tasks.sample_task",
-        "schedule": crontab(minute="*/1"),
-    },
+#CELERY_BEAT_SCHEDULE = {
+#    "sample_task": {
+#        "task": "ovsmirrorwatch.tasks.sample_task",
+#        "schedule": crontab(minute="*/1"),
+#    },
+#}
+
+
+# === DRF Settings ===
+
+REST_FRAMEWORK = {
+    # YOUR SETTINGS
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    #'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'OVSMirrorWatch REST API',
+    'DESCRIPTION': 'The REST API of OVSMirrorWatch.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
 }

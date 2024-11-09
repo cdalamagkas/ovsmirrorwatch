@@ -20,7 +20,8 @@ class ManagerForm(forms.ModelForm):
         self.fields["port"].label = "TCP port of the OVSDB manager"
         self.fields["name"].label = "Friendly name for the OVSDB manager"
         self.fields["description"].label = "Administrative information related to the OVSDB manager"
-
+        self.fields["description"].required = False
+        
 
 class ManagerFormEdit(forms.ModelForm):
     helper = FormHelper()

@@ -2,20 +2,50 @@
     <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
         <div class="sb-sidenav-menu">
             <div class="nav">
-                <div class="sb-sidenav-menu-heading">Core</div>
+                <div class="sb-sidenav-menu-heading">OVSMirrorWatch</div>
                 <a class="nav-link" href="{% url 'home' %}">
                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                     Dashboard
                 </a>
 
-                <div class="sb-sidenav-menu-heading">Mirrors</div>
-                <a class="nav-link" href="manage-mirrors.html">
-                    <div class="sb-nav-link-icon"><i class="bi bi-shuffle"></i></div>
-                    Manage Mirrors
+                <div class="sb-sidenav-menu-heading">Mirror Components</div>
+                <a class="nav-link" href="{% url 'mirror-manage'%}">
+                    <div class="sb-nav-link-icon">
+                        <span class="fa-stack fa-sm">
+                            <i class="fa-solid fa-shuffle fa-stack-2x"></i>
+                            <i class="fa-solid fa-gear fa-stack-1x botton-right"></i>
+                        </span>
+                    </div>
+                    Manage Mirrors, Switches, Ports
                 </a>
-                <a class="nav-link" href="add-mirrors.html"> 
-                    <div class="sb-nav-link-icon"><i class="bi bi-plus-circle"></i></div>
-                    Add Mirrors
+                <a class="nav-link" href="{% url 'mirror-add'%}"> 
+                    <div class="sb-nav-link-icon">
+                        <span class="fa-stack fa-sm">
+                            <i class="fa-solid fa-shuffle fa-stack-2x"></i>
+                            <i class="fa-solid fa-circle-plus fa-stack-1x botton-right"></i>
+                        </span>
+                    </div>
+                    Add Mirror
+                </a>
+
+                <a class="nav-link" href="{% url 'bridge-add'%}"> 
+                    <div class="sb-nav-link-icon">
+                        <span class="fa-stack fa-sm">
+                            <i class="fa-solid fa-right-left fa-stack-2x"></i>
+                            <i class="fa-solid fa-circle-plus fa-stack-1x botton-right"></i>
+                        </span>
+                    </div>
+                    Add Switch
+                </a>
+
+                <a class="nav-link" href="{% url 'port-add'%}"> 
+                    <div class="sb-nav-link-icon">
+                        <span class="fa-stack fa-sm">
+                            <i class="fa-solid fa-ethernet fa-stack-2x"></i>
+                            <i class="fa-solid fa-circle-plus fa-stack-1x botton-right"></i>
+                        </span>
+                    </div>
+                    Add Port
                 </a>
 
                 <div class="sb-sidenav-menu-heading">OVSDB Managers</div>

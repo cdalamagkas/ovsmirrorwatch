@@ -32,6 +32,9 @@ urlpatterns = [
     path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(template_name='password-reset-complete.html'), name='password_reset_complete'),
 
     path('manager/', include('manager.urls')),
+    path('mirror/', include('mirror.urls')),
+    path('port/', include('port.urls')),
+    path('bridge/', include('bridge.urls')),
     #path('api-auth/', include('rest_framework.urls', namespace="rest_framework")),
     path('api/', include('api_rest.urls')),
     #path('oidc/', include('oauth2_authcodeflow.urls')),
