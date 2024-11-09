@@ -3,13 +3,6 @@ import time
 import logging
 from ovs_vsctl import VSCtl
 
-# Configure logging
-logging.basicConfig(
-    filename='mirror_monitor.log',
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s: %(message)s'
-)
-
 
 def get_all_mirrors(vsctl):
     """

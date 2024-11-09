@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_css %}
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@9.2.1/dist/style.min.css" rel="stylesheet" />
+{% endblock page_css %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <table id="datatable_manager" class="table table-bordered table-hover dataTable" style="word-break: break-all;">
+        <thead>
+            <tr>
+                <th>Edit</th>
+                <th class="sorting">Manager ID</th>
+                <th class="sorting">Manager Name</th>
+                <th class="sorting">Manager IP</th>
+                <th class="sorting">Manager Port</th>
+                <th class="sorting">Monitored</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        </table>
+    </div>
+</div>
+{% endblock content %}
+
+{% block page_js %}
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.2.1/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+        const idtags_datatable = new simpleDatatables.DataTable("#datatable_manager");
+        
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                let data = JSON.parse(this.responseText);
+                var data_to_datatable = []
+
+                for (let i=0; i<data.length; i++) {
+                    let activated_icon;
+                    if (data[i]["monitor"])
+                        activated_icon = "<i style='color: green;' class='fa-solid fa-square-check'></i>";
+                    else
+                        activated_icon = "<i style='color: red;' class='fa-solid fa-circle-xmark'></i>";
+                    
+                    idtags_datatable.rows.add([
+                        "<a href='/manager/edit/" + data[i]["name"] + "'><i class='fas fa-arrow-circle-right'></i></a>",
+                        data[i]["id"],
+                        data[i]["name"],
+                        data[i]["ip_address"],
+                        data[i]["port"],
+                        activated_icon,
+                        "<a href='/manager/delete/" + data[i]["name"] + "'><i style='color: red;' class='fas fa-minus-circle'></i></a>"
+                    ]);
+                }
+            }
+        };
+
+        xhttp.open("GET", "/api/manager/?format=json", true);
+        xhttp.send();
+        
+        
+    </script>
+{% endblock page_js %}

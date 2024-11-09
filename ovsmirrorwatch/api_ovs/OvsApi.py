@@ -1,6 +1,7 @@
 import json
 from ovs_vsctl import VSCtl, exception
 
+
 class OVSAPI:
     def __init__(self, protocol='tcp', addr='192.168.86.254', port=6640):
         self.vsctl = VSCtl(protocol=protocol, addr=addr, port=port)

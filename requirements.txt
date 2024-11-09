@@ -4,3 +4,15 @@ ovspy==0.1.0b2
 pbr==6.1.0
 six==1.16.0
 sortedcontainers==2.4.0
+Django
+celery 
+channels
+channels-redis
+crispy-bootstrap5
+daphne
+django-celery-results
+django-crispy-forms
+djangorestframework
+drf-spectacular
+redis
+django-celery-beat
