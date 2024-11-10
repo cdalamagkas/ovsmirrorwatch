@@ -42,3 +42,4 @@ class ManagerFormEdit(forms.ModelForm):
         self.fields["name"].disabled = True
         self.fields["monitor"].label = "Enable OVSDB Manager monitoring by OVSMirrorWatch"
         self.fields["description"].label = "Administrative information related to the OVSDB manager"
+        self.fields["description"].required = False

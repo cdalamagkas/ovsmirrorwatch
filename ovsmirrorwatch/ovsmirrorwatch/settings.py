@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'constance',
 
     'home',
     'bridge',
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
     'channels_redis',
     'celery',
     'django_celery_results',
+    'django_celery_beat',
     'rest_framework',
     'drf_spectacular',
 
@@ -98,6 +100,13 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://" + os.environ['OVSMW_REDIS_BROKER_HOST'] + ":" + os.environ['OVSMW_REDIS_BROKER_PORT'],
     }
 }
 
@@ -196,17 +205,6 @@ CHANNEL_LAYERS = {
 }
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
-from celery.schedules import crontab
-import ovsmirrorwatch.tasks
-
-
-#CELERY_BEAT_SCHEDULE = {
-#    "sample_task": {
-#        "task": "ovsmirrorwatch.tasks.sample_task",
-#        "schedule": crontab(minute="*/1"),
-#    },
-#}
-
 
 # === DRF Settings ===
 
@@ -226,4 +224,15 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
+}
+
+CONSTANCE_REDIS_CONNECTION = {
+    'host': os.environ['OVSMW_REDIS_BROKER_HOST'],
+    'port': int(os.environ['OVSMW_REDIS_BROKER_PORT']),
+    'db': 0,
+}
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
+CONSTANCE_CONFIG = {
+    'REFRESH_INTERVAL_SECONDS': (5, 'How frequently the OVSMirrorWatch should query each monitored OVSDB server for updates.'),
 }

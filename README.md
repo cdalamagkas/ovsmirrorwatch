@@ -46,6 +46,11 @@ In another window or terminal tab, **load again the environment variables**, and
 celery -A ovsmirrorwatch beat -l info
 ```
 
+Only for development purposes only, you can run the worker and beat with a single command:
+```shell
+celery -A ovsmirrorwatch worker --beat --scheduler django --loglevel=info
+```
+
 Finally, in another terminal window/tab, **load again the environment variables** and start the Django development server
 ```shell
 python manage.py runserver 0.0.0.0:8000

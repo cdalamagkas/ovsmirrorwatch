@@ -12,6 +12,7 @@ from rest_framework import permissions
 from drf_spectacular.openapi import AutoSchema
 from .serializers import ManagerSerializer
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from manager.signals import schedule_managers
 
 
 @login_required
@@ -27,6 +28,7 @@ def add_manager(request):
             form.save()
             name = form.cleaned_data.get('name')
             messages.success(request, f'OVSDB Manager "{name}" created')
+            schedule_managers.send(sender=OVSManager)
             return redirect('manager-manage')
     else:
         form = ManagerForm()
@@ -69,6 +71,7 @@ def edit_manager(request):
         if manager_form.is_valid():
             manager_form.save()
             messages.success(request, f'The OVSDB Manager "{edited_manager.name}" has been updated')
+            schedule_managers.send(sender=OVSManager)
             return redirect('manager-manage')
         else:
             messages.error(request, f'The OVSDB Manager could not be updated. Please try again')
@@ -103,7 +106,6 @@ class ManagerApiView(ListCreateAPIView):
         else:
             return Response(data= self.serializer_class(filtered_queryset.all(), many=True).data )
     
-
 
 class ManagerDetailApiView(RetrieveUpdateDestroyAPIView):
     serializer_class = ManagerSerializer
