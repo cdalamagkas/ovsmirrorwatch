@@ -9,7 +9,7 @@ from api_ovs.ovs_mirror_monitor_v3 import check_and_repair_mirrors
 logger = get_task_logger(__name__)
 
 
-@shared_task
+@shared_task(ignore_result=True)
 def check_ovsdb_manager(server_name):
     manager = OVSManager.objects.get(name=server_name)
     OVSDBManager = OVSAPI(addr=manager.ip_address, port=manager.port)

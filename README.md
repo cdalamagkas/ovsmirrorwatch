@@ -9,8 +9,23 @@ To address this issue, OVSMirrorWatch allows the administrator to define port mi
 ## Deployment from source code
 If this is the first time running the project, you need to prepare the python environment and install the dependencies from `requirements.txt`. Also, make sure you are using Python 3.10.
 
-In your Python environment, install `python-ovs-vsctl`:
+If you do not have Python 3.10 in your system, issue the following commands on an Ubuntu machine:
+
 ```shell
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt install python3.10 python3.10-venv
+```
+
+Then, create a Python environment and activate it:
+
+```shell
+python3.10 -m venv venv
+source ./venv/bin/activate
+```
+
+In your Python environment, install the dependencies in `requirements.txt` and (manually) the `python-ovs-vsctl` package:
+```shell
+pip install -r requirements.txt
 pip install git+https://github.com/iwaseyusuke/python-ovs-vsctl.git
 ```
 
@@ -22,6 +37,9 @@ OVSMW_DEBUG=<0 or 1>
 OVSMW_DJANGO_STATIC_FILES_PROXIED=<0 or 1>
 OVSMW_REDIS_BROKER_HOST=<You can use docker-lab.trsc.net or your own Redis server>
 OVSMW_REDIS_BROKER_PORT=<Usually 6379>
+DJANGO_SUPERUSER_USERNAME=<Provide a username for the built-in superuser>
+DJANGO_SUPERUSER_PASSWORD=<Provide the password of the built-in superuser>
+DJANGO_SUPERUSER_EMAIL=<Provide the email of the built-in superuser>
 ```
 
 > Redis is an essential component, it is required by Django Celery, Celery Beat and Django Channels!
@@ -34,6 +52,16 @@ source ./venv/bin/activate
 Load the environment variables
 ```shell
 export $(cat .env | xargs)
+```
+
+If this is the first time starting the project, apply the migrations (also apply them every time the migrations are updated):
+```shell
+python manage.py migrate
+```
+
+If this is the first time starting the project, create a superuser:
+```shell
+python manage.py createsuperuser --noinput
 ```
 
 Start the Celery worker in one window

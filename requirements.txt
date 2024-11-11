@@ -16,3 +16,4 @@ djangorestframework
 drf-spectacular
 redis
 django-celery-beat
+django-constance
