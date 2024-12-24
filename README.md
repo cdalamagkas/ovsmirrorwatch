@@ -71,7 +71,7 @@ celery -A ovsmirrorwatch worker -l info
 
 In another window or terminal tab, **load again the environment variables**, and start the Celery Beat
 ```shell
-celery -A ovsmirrorwatch beat -l info
+celery -A ovsmirrorwatch beat -l info --scheduler django
 ```
 
 Only for development purposes only, you can run the worker and beat with a single command:
@@ -83,13 +83,3 @@ Finally, in another terminal window/tab, **load again the environment variables*
 ```shell
 python manage.py runserver 0.0.0.0:8000
 ```
-
-## ovs_mirror_monitor and OVSAPI
-
-The script monitors the state of the mirrors currently configured. It uses the ovs-vsctl cmd tool wrapped as a python script to interact with the ovs-db in the machine running the mirrors. Every 5 seconds the script fetches the current port mirrorings and keeps an internal state of said port mirrors. If in the next poll the states have changed the script attempts to re-establish the failed port mirrors based on the stored mirror state form the previous 5 seconds.
-
-### To build the image run:
-```docker build -t mirror_monitor .```
-
-### To run the image:
-``` docker run -it --net=host  mirror_monitor ```
