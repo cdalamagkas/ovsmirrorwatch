@@ -8,3 +8,5 @@ class OVSBridge(models.Model):
     ovsdb_manager = models.ForeignKey(OVSManager, on_delete=models.SET_NULL, null=True)
     description = models.TextField(default=None, null=True)
 
+    def __str__(self):
+        return self.ovs_name + " (" + self.friendly_name + ")"

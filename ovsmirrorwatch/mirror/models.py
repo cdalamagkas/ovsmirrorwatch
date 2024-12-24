@@ -10,3 +10,6 @@ class OVSMirror(models.Model):
     out_port = models.ForeignKey(OVSPort, on_delete=models.SET_NULL, null=True)
     health = models.BooleanField(default=None, null=True)
     description = models.TextField()
+
+    def __str__(self):
+        return self.name

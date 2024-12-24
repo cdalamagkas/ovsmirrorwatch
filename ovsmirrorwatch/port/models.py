@@ -7,3 +7,6 @@ class OVSPort(models.Model):
     friendly_name = models.CharField(max_length=30)
     bridge = models.ForeignKey(OVSBridge, on_delete=models.CASCADE)
     description = models.TextField(default=None, null=True)
+
+    def __str__(self):
+        return self.ovs_name + " (" + self.friendly_name + ")"
