@@ -4,7 +4,7 @@ from api_ovs.OvsApi import OVSAPI
 from manager.models import OVSManager
 from mirror.models import OVSMirror
 from api_ovs.ovs_mirror_monitor_v3 import check_and_repair_mirrors
-
+import functools
 
 logger = get_task_logger(__name__)
 
@@ -18,7 +18,7 @@ def check_ovsdb_manager(server_name):
     live_mirrors = OVSDBManager.get_mirrors_overview()
     live_named_mirrors = {live_mirror.get('name'):live_mirror for live_mirror in live_mirrors} #helper dict
 
-    db_mirrors = OVSManager.objects.all()
+    db_mirrors = OVSMirror.objects.all()
 
     # For each mirror of the Django DB
     for db_mirror in db_mirrors:
