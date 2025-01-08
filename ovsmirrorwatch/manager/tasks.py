@@ -3,7 +3,6 @@ from celery.utils.log import get_task_logger
 from api_ovs.OvsApi import OVSAPI
 from manager.models import OVSManager
 from mirror.models import OVSMirror
-from api_ovs.ovs_mirror_monitor_v3 import check_and_repair_mirrors
 import functools
 
 logger = get_task_logger(__name__)
@@ -69,7 +68,7 @@ def check_ovsdb_manager(server_name):
         else:
             # Update health status
             db_mirror.health = False
-            
+
             #Recreate the mirror on the Mirror Manager
             OVSAPI.create_mirror(mirror_name, bridge_name, select_src_ports, select_dst_ports, output_port)
 

@@ -141,25 +141,26 @@ def check_and_repair_mirrors(vsctl, expected_mirrors, current_mirrors):
     
     # Check for missing mirrors
     missing_mirrors = expected_mirror_names - current_mirror_names
-    for mirror_name in missing_mirrors:
-        logging.warning(f"Mirror '{mirror_name}' is missing. Re-establishing.")
-        reestablish_mirror(vsctl, expected_mirrors[mirror_name], port_bridge_map)
-        logging.info(f"Mirror '{mirror_name}' re-established.")
-    
-    # Check for misconfigured mirrors
-    # common_mirrors = expected_mirror_names & current_mirror_names
-    # for mirror_name in common_mirrors:
-    #     expected_mirror = expected_mirrors[mirror_name]
-    #     current_mirror = current_mirrors[mirror_name]
-    #     if not compare_mirror_configs(vsctl, expected_mirror, current_mirror):
-    #         logging.warning(f"Mirror '{mirror_name}' is misconfigured. Re-establishing.")
-    #         # Remove the existing mirror
-    #         mirror_uuid = current_mirror['_uuid'][1]  # Get the UUID string
-    #         bridge_name = current_mirror['bridge']
-    #         remove_mirror(vsctl, bridge_name, mirror_uuid)
-    #         # Re-establish the mirror
-    #         reestablish_mirror(vsctl, expected_mirror, port_bridge_map)
-    #         logging.info(f"Mirror '{mirror_name}' re-established.")
+    if missing_mirrors:
+        for mirror_name in missing_mirrors:
+            logging.warning(f"Mirror '{mirror_name}' is missing. Re-establishing.")
+            reestablish_mirror(vsctl, expected_mirrors[mirror_name], port_bridge_map)
+            logging.info(f"Mirror '{mirror_name}' re-established.")
+    else:
+        # Check for misconfigured mirrors
+        common_mirrors = expected_mirror_names & current_mirror_names
+        for mirror_name in common_mirrors:
+            expected_mirror = expected_mirrors[mirror_name]
+            current_mirror = current_mirrors[mirror_name]
+            if not compare_mirror_configs(vsctl, expected_mirror, current_mirror):
+                logging.warning(f"Mirror '{mirror_name}' is misconfigured. Re-establishing.")
+                # Remove the existing mirror
+                mirror_uuid = current_mirror['_uuid'][1]  # Get the UUID string
+                bridge_name = current_mirror['bridge']
+                remove_mirror(vsctl, bridge_name, mirror_uuid)
+                # Re-establish the mirror
+                reestablish_mirror(vsctl, expected_mirror, port_bridge_map)
+                logging.info(f"Mirror '{mirror_name}' re-established.")
 
 def compare_mirror_configs(vsctl, expected_mirror, current_mirror):
     """
