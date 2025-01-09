@@ -23,12 +23,12 @@ def check_ovsdb_manager(server_name):
     for db_mirror in db_mirrors:
 
         mirror_name = db_mirror.name
-        bridge_name = db_mirror.out_port.bridge.ovs_name
+        bridge_name = db_mirror.out_port.bridge.friendly_name
         select_src_ports = [f_name["friendly_name"] for f_name in db_mirror.src_ports.values('friendly_name')]
         select_dst_ports = [f_name["friendly_name"] for f_name in db_mirror.dst_ports.values('friendly_name')]
         output_port = db_mirror.out_port.ovs_name
 
-
+        
 
         if mirror_name in live_named_mirrors.keys():
             live_mirror = live_named_mirrors[mirror_name]
@@ -38,7 +38,7 @@ def check_ovsdb_manager(server_name):
 
             # Check for misconfiguration. If yes change the mirror config to the desired on based on the db mirror.
             # Check config of live and db mirror setups
-            if any([select_src_ports == live_mirror["select_src_port"],
+            if not any([select_src_ports == live_mirror["select_src_port"],
                         select_dst_ports == live_mirror["select_dst_port"],
                         output_port == live_mirror["output_port"]]):
                 
