@@ -2,7 +2,7 @@
 
 This is a Django-based web application that monitors OVSDB managers and restores their port mirroring configurations.
 
-> Explain Motivation
+In Open vSwitch (OVS), port mirroring configurations are lost when the system reboots, and permanently breaks when a participating interface is removed. So, each time a port mirroring breaks or deleted, the system administrator should re-create again the port mirroring configurations. The same problem appears in cloud environments, e.g. in Proxmox VE.
 
 To address this issue, OVSMirrorWatch allows the administrator to define port mirroring sessions, and then it queries periodically the OVSDB managers to ensure that the port mirroring sessions are present. If a port mirroring session breaks (due to a hard reboot of a VM or a downtime of some VMs), OVSMirrorWatch tries periodically to re-establish the port mirroring session. OVSMirrorWatch always ensures that the stateful mirroring configuration that the administrator defines in OVSMirrorWatch's DB, is reflected to the live and stateless enviroment of the OVSDB managers.
 
