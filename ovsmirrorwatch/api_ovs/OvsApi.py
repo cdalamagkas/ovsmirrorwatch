@@ -38,57 +38,76 @@ class OVSAPI:
 
     def create_mirror(self, mirror_name, bridge_name, select_src_ports, select_dst_ports, output_port):
         """
-        Create a port mirror.
+        Create a port mirror in a single ovs-vsctl transaction.
+
         Parameters:
             mirror_name (str): Name of the mirror.
-            bridge_name (str): Name of the bridge to add the mirror to.
+            bridge_name (str): Name of the bridge to attach the mirror to.
             select_src_ports (list): List of source port names to mirror.
             select_dst_ports (list): List of destination port names to mirror.
             output_port (str): Name of the output port.
+
         Returns:
             True if successful, False otherwise.
         """
         try:
-            # Build command components
-            commands = []
-            # Create Mirror
-            commands.append(f'-- --id=@m create Mirror name={mirror_name}')
+            # Set Bridge
+            cmd_parts = [f"-- set Bridge {bridge_name} mirrors=@m"]
+            
+            for idx, port_name in enumerate(select_src_ports or []):
+                cmd_parts.append(f"-- --id=@src{idx} get Port {port_name}")
 
-            # Add select_src_ports
-            for idx, port_name in enumerate(select_src_ports):
-                commands.append(f'-- --id=@p{idx} get Port {port_name}')
-            if select_src_ports:
-                port_refs = ','.join([f'@p{idx}' for idx in range(len(select_src_ports))])
-                commands.append(f'select_src_port=[{port_refs}]')
-
-            # Add select_dst_ports
-            for idx, port_name in enumerate(select_dst_ports):
-                commands.append(f'-- --id=@d{idx} get Port {port_name}')
-            if select_dst_ports:
-                port_refs = ','.join([f'@d{idx}' for idx in range(len(select_dst_ports))])
-                commands.append(f'select_dst_port=[{port_refs}]')
-
-            # Output port
+            
+            for idx, port_name in enumerate(select_dst_ports or []):
+                cmd_parts.append(f"-- --id=@dst{idx} get Port {port_name}")
+            
             if output_port:
-                commands.append(f'-- --id=@out get Port {output_port}')
-                commands.append(f'output_port=@out')
+                cmd_parts.append(f"-- --id=@out get Port {output_port}")
 
-            # Add the Mirror to the Bridge
-            commands.append(f'-- add Bridge {bridge_name} mirrors @m')
+            # Create Mirror
+            mirror_create = [f"-- --id=@m create Mirror name={mirror_name}"]
 
-            # Build the full command
-            command = ' '.join(commands)
+            # Attach source ports
+            if select_src_ports:
+                src_refs = ",".join(f"@src{idx}" for idx in range(len(select_src_ports)))
+                mirror_create.append(f"select-src-port=[{src_refs}]")
 
-            self.vsctl.run(command=command, parser=None)
+            # Attach destination ports
+            if select_dst_ports:
+                dst_refs = ",".join(f"@dst{idx}" for idx in range(len(select_dst_ports)))
+                mirror_create.append(f"select-dst-port=[{dst_refs}]")
+
+            # Attach output port
+            if output_port:
+                mirror_create.append("output-port=@out")
+
+            # Combine all Mirror fields into one
+            cmd_parts.append(" ".join(mirror_create))
+
+            # Build the full command (single transaction)
+            full_command = " ".join(cmd_parts)
+            # Example final command structure:
+            # ovs-vsctl -- set Bridge vmbr5 mirrors=@m
+            #            -- --id=@src0 get Port ens4f1
+            #            -- --id=@out get Port tap111i1
+            #            -- --id=@m create Mirror name=kali_mirror select-src-port=[@src0] output-port=@out
+
+            print("Running single transaction:", full_command)
+            self.vsctl.run(command=full_command, parser=None)
+
             print(f"Mirror '{mirror_name}' created successfully on bridge '{bridge_name}'.")
             return True
+
         except Exception as e:
             print(f"Error creating mirror '{mirror_name}': {e}")
             return False
 
+
+
     def destroy_mirror(self, mirror_name, bridge_name):
         """
-        Destroy a port mirror.
+        Destroy a port mirror by name on a given bridge.
+
         Parameters:
             mirror_name (str): Name of the mirror to destroy.
             bridge_name (str): Name of the bridge containing the mirror.
@@ -96,35 +115,55 @@ class OVSAPI:
             True if successful, False otherwise.
         """
         try:
-            # Get the UUID of the mirror
-            command = f'get Bridge {bridge_name} mirrors'
+            # Get all mirror UUIDs referenced by the Bridge
+            command = f"get Bridge {bridge_name} mirrors"
             result = self.vsctl.run(command=command, parser=None)
             output = result.stdout.read()
             mirror_uuids = self.extract_uuids_from_output(output)
 
-            # Find the mirror with the specified name
+            if not mirror_uuids:
+                print(f"No mirrors found on bridge '{bridge_name}'.")
+                return False
+
+            # Find the mirror whose 'name' matches mirror_name
+            mirror_uuid_to_destroy = None
             for mirror_uuid in mirror_uuids:
-                command = f'get Mirror {mirror_uuid} name'
+                # For each Mirror UUID, get its 'name' column
+                command = f"get Mirror {mirror_uuid} name"
                 result = self.vsctl.run(command=command, parser=None)
                 name = result.stdout.read().strip().strip('"')
                 if name == mirror_name:
-                    # Remove the mirror from the bridge
-                    command = f'remove Bridge {bridge_name} mirrors {mirror_uuid}'
-                    self.vsctl.run(command=command, parser=None)
-                    # Destroy the mirror
-                    command = f'destroy Mirror {mirror_uuid}'
-                    self.vsctl.run(command=command, parser=None)
-                    print(f"Mirror '{mirror_name}' destroyed successfully.")
-                    return True
-            print(f"Mirror '{mirror_name}' not found on bridge '{bridge_name}'.")
-            return False
+                    mirror_uuid_to_destroy = mirror_uuid
+                    break
+
+            if not mirror_uuid_to_destroy:
+                print(f"Mirror '{mirror_name}' not found on bridge '{bridge_name}'.")
+                return False
+
+        # Remove the Mirror from the Bridge and destroy it in one transaction.
+        # Using a single transaction ensures both actions happen together:
+        #      remove Bridge <bridge_name> mirrors <mirror_uuid>
+        #      destroy Mirror <mirror_uuid>
+        # OVS ephemeral references are not needed here because we are 
+        # referencing the actual UUID directly.
+            combined_command = (
+                f"-- remove Bridge {bridge_name} mirrors {mirror_uuid_to_destroy} "
+                f"-- destroy Mirror {mirror_uuid_to_destroy}"
+            )
+            self.vsctl.run(command=combined_command, parser=None)
+
+            print(f"Mirror '{mirror_name}' destroyed successfully.")
+            return True
+
         except Exception as e:
             print(f"Error destroying mirror '{mirror_name}': {e}")
             return False
 
+
     def alter_mirror(self, mirror_name, bridge_name, select_src_ports=None, select_dst_ports=None, output_port=None):
         """
-        Alter an existing port mirror.
+        Alter an existing port mirror in a single ovs-vsctl transaction.
+
         Parameters:
             mirror_name (str): Name of the mirror to alter.
             bridge_name (str): Name of the bridge containing the mirror.
@@ -135,16 +174,15 @@ class OVSAPI:
             True if successful, False otherwise.
         """
         try:
-            # Get the UUID of the mirror
-            command = f'get Bridge {bridge_name} mirrors'
-            result = self.vsctl.run(command=command, parser=None)
+            get_mirrors_cmd = f"get Bridge {bridge_name} mirrors"
+            result = self.vsctl.run(command=get_mirrors_cmd, parser=None)
             output = result.stdout.read()
             mirror_uuids = self.extract_uuids_from_output(output)
 
             mirror_uuid = None
             for uuid in mirror_uuids:
-                command = f'get Mirror {uuid} name'
-                result = self.vsctl.run(command=command, parser=None)
+                get_name_cmd = f"get Mirror {uuid} name"
+                result = self.vsctl.run(command=get_name_cmd, parser=None)
                 name = result.stdout.read().strip().strip('"')
                 if name == mirror_name:
                     mirror_uuid = uuid
@@ -154,48 +192,85 @@ class OVSAPI:
                 print(f"Mirror '{mirror_name}' not found on bridge '{bridge_name}'.")
                 return False
 
-            # Build command components
-            commands = []
+            # Build a single transaction (a single ovs-vsctl command)
+            # that creates ephemeral references for the Port rows,
+            # and then sets/clears the relevant columns on the Mirror.
+            transaction_parts = []
 
-            # Update select_src_ports
+            # Collect ephemeral references for select_src_ports
+            # Example:   -- --id=@p0 get Port ens4f1
+            src_refs = []
             if select_src_ports is not None:
-                port_refs = []
                 for idx, port_name in enumerate(select_src_ports):
-                    self.vsctl.run(command=f'--id=@p{idx} get Port {port_name}', parser=None)
-                    port_refs.append(f'@p{idx}')
-                if port_refs:
-                    commands.append(f'set Mirror {mirror_uuid} select_src_port=[{",".join(port_refs)}]')
-                else:
-                    commands.append(f'clear Mirror {mirror_uuid} select_src_port')
+                    transaction_parts.append(f"-- --id=@src{idx} get Port {port_name}")
+                    src_refs.append(f"@src{idx}")
 
-            # Update select_dst_ports
+            # Collect ephemeral references for select_dst_ports
+            dst_refs = []
             if select_dst_ports is not None:
-                port_refs = []
                 for idx, port_name in enumerate(select_dst_ports):
-                    self.vsctl.run(command=f'--id=@d{idx} get Port {port_name}', parser=None)
-                    port_refs.append(f'@d{idx}')
-                if port_refs:
-                    commands.append(f'set Mirror {mirror_uuid} select_dst_port=[{",".join(port_refs)}]')
+                    transaction_parts.append(f"-- --id=@dst{idx} get Port {port_name}")
+                    dst_refs.append(f"@dst{idx}")
+
+            # Collect ephemeral reference for output_port 
+            has_output_port = (output_port is not None)  # i.e. user wants to set or clear
+            if has_output_port and output_port:
+                transaction_parts.append(f"-- --id=@out get Port {output_port}")
+
+            # Now we’ll build "set Mirror <mirror_uuid> ..." or "clear Mirror <mirror_uuid> ..."
+            # for each field the user wants to update (SRC, DST, OUTPUT)
+            # We'll gather them in one or more "set/clear" lines.  
+            # You can do them in multiple lines or combine them, but they must be in
+            # the same transaction.
+
+            # Update select_src_port in the same transaction
+            if select_src_ports is not None:
+                if src_refs:
+                    # set Mirror <uuid> select_src_port=[@src0,@src1,...]
+                    transaction_parts.append(
+                        f"-- set Mirror {mirror_uuid} select_src_port=[{','.join(src_refs)}]"
+                    )
                 else:
-                    commands.append(f'clear Mirror {mirror_uuid} select_dst_port')
+                    # clear Mirror <uuid> select_src_port
+                    transaction_parts.append(f"-- clear Mirror {mirror_uuid} select_src_port")
+
+            # Update select_dst_port
+            if select_dst_ports is not None:
+                if dst_refs:
+                    transaction_parts.append(
+                        f"-- set Mirror {mirror_uuid} select_dst_port=[{','.join(dst_refs)}]"
+                    )
+                else:
+                    transaction_parts.append(f"-- clear Mirror {mirror_uuid} select_dst_port")
 
             # Update output_port
-            if output_port is not None:
+            if has_output_port:
                 if output_port:
-                    self.vsctl.run(command=f'--id=@out get Port {output_port}', parser=None)
-                    commands.append(f'set Mirror {mirror_uuid} output_port=@out')
+                    # set Mirror <uuid> output_port=@out
+                    transaction_parts.append(f"-- set Mirror {mirror_uuid} output_port=@out")
                 else:
-                    commands.append(f'clear Mirror {mirror_uuid} output_port')
+                    # clear Mirror <uuid> output_port
+                    transaction_parts.append(f"-- clear Mirror {mirror_uuid} output_port")
 
-            # Execute commands
-            for cmd in commands:
-                self.vsctl.run(command=cmd, parser=None)
+            # Combine all into a single ovs-vsctl command
+            full_command = " ".join(transaction_parts)
+            # Example final structure:
+            #   ovs-vsctl
+            #     -- --id=@src0 get Port ens4f1
+            #     -- --id=@dst0 get Port ens4f2
+            #     -- --id=@out get Port tap111i1
+            #     -- set Mirror <mirror_uuid> select_src_port=[@src0] select_dst_port=[@dst0] output_port=@out
+
+            print("Running single-transaction command:", full_command)
+            self.vsctl.run(command=full_command, parser=None)
 
             print(f"Mirror '{mirror_name}' altered successfully.")
             return True
+
         except Exception as e:
             print(f"Error altering mirror '{mirror_name}': {e}")
             return False
+
 
     def get_mirrors_overview(self):
         """
