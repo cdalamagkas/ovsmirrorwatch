@@ -16,10 +16,10 @@ python manage.py makemigrations --noinput
 
 python manage.py migrate --noinput
 
-if [ -n "$OV2XMP_INITIALIZE_SUPERUSER" ] ; then
+if [ -n "$DJANGO_INITIALIZE_SUPERUSER" ] ; then
     python manage.py createsuperuser --no-input
 fi
 
 python manage.py collectstatic --noinput
 
-daphne -b 0.0.0.0 -p 8000 ov2xmp.asgi:application
+daphne -b 0.0.0.0 -p 8000 ovsmirrorwatch.asgi:application

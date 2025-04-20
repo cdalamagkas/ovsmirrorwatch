@@ -4,10 +4,10 @@ services:
     hostname: ovsmirrorwatch-daphne
     image: ovsmirrorwatch:latest
     restart: always
-    networks:
-      - ovsmirrorwatch_network
+    ports:
+      - 8900:8000
     volumes:
-      - ovsmirrorwatch_db:/code/db.sqlite3
+      - ovsmirrorwatch_db:/code
     env_file:
       - .env
   
@@ -17,10 +17,8 @@ services:
     image: ovsmirrorwatch:latest
     entrypoint: celery -A ovsmirrorwatch worker --beat --scheduler django --loglevel=info
     restart: always
-    networks:
-      - ovsmirrorwatch_network
     volumes:
-      - ovsmirrorwatch_celerybeat:/code/celerybeat-schedule
+      - ovsmirrorwatch_celerybeat:/code
     env_file:
       - .env
   
@@ -56,9 +54,6 @@ services:
   #  networks:
   #    - ovsmirrorwatch_network    
 
-
-networks:
-  ovsmirrorwatch:
 
 volumes:
   ovsmirrorwatch_db:

@@ -32,17 +32,17 @@ pip install git+https://github.com/iwaseyusuke/python-ovs-vsctl.git
 A `.env` file must be created (not included in git), which defines all the initial configurations that Django needs in order to start. The `.env` must have the following content:
 
 ```env
-OVSMW_SECRET_KEY=<Django secret>
-OVSMW_DEBUG=<0 or 1>
-OVSMW_DJANGO_STATIC_FILES_PROXIED=<0 or 1>
-OVSMW_REDIS_BROKER_HOST=<You can use docker-lab.trsc.net or your own Redis server>
-OVSMW_REDIS_BROKER_PORT=<Usually 6379>
+DJANGO_SECRET_KEY=<Django secret>
+DJANGO_DEBUG=<0 or 1>
+OVSMW_DJANGO_STATIC_FILES_PROXIED=1
+OVSMW_REDIS_BROKER_HOST=<Use your own Redis server or uncomment the lines in docker-compose.yml to deploy one>
+OVSMW_REDIS_BROKER_PORT=6379
+DJANGO_INITIALIZE_SUPERUSER=1
 DJANGO_SUPERUSER_USERNAME=<Provide a username for the built-in superuser>
 DJANGO_SUPERUSER_PASSWORD=<Provide the password of the built-in superuser>
 DJANGO_SUPERUSER_EMAIL=<Provide the email of the built-in superuser>
+DJANGO_ALLOWED_HOSTS=*
 ```
-
-> Redis is an essential component, it is required by Django Celery, Celery Beat and Django Channels!
 
 Activate the virtual enviroment:
 ```shell
