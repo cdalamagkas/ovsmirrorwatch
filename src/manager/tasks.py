@@ -23,12 +23,10 @@ def check_ovsdb_manager(server_name):
     for db_mirror in db_mirrors:
 
         mirror_name = db_mirror.name
-        bridge_name = db_mirror.out_port.bridge.friendly_name
-        select_src_ports = [f_name["friendly_name"] for f_name in db_mirror.src_ports.values('friendly_name')]
-        select_dst_ports = [f_name["friendly_name"] for f_name in db_mirror.dst_ports.values('friendly_name')]
+        bridge_name = db_mirror.out_port.bridge.ovs_name
+        select_src_ports = [f_name["ovs_name"] for f_name in db_mirror.src_ports.values('ovs_name')]
+        select_dst_ports = [f_name["ovs_name"] for f_name in db_mirror.dst_ports.values('ovs_name')]
         output_port = db_mirror.out_port.ovs_name
-
-        
 
         if mirror_name in live_named_mirrors.keys():
             live_mirror = live_named_mirrors[mirror_name]
@@ -44,7 +42,6 @@ def check_ovsdb_manager(server_name):
                 
                 db_mirror.health = False
                 logger.info(f"Mirror {db_mirror.name} is live but misconfigured.")
-
 
                 # Destroy old mirror and set up a new one based on the db mirror
                 if OVSDBManager.destroy_mirror(mirror_name, bridge_name):
@@ -62,8 +59,7 @@ def check_ovsdb_manager(server_name):
                         
                 else:
                     logger.info(f'Failed to destroy mirror {db_mirror.name}')
-                
-                
+        
 
         # Check if mirror does not exist. If not recreate the mirror
         else:
