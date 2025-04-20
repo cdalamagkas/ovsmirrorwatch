@@ -1,0 +1,65 @@
+services:
+  ovsmirrorwatch-daphne:
+    container_name: ovsmirrorwatch-daphne
+    hostname: ovsmirrorwatch-daphne
+    image: ovsmirrorwatch:latest
+    restart: always
+    networks:
+      - ovsmirrorwatch_network
+    volumes:
+      - ovsmirrorwatch_db:/code/db.sqlite3
+    env_file:
+      - .env
+  
+  ovsmirrorwatch-worker:
+    container_name: ovsmirrorwatch-worker
+    hostname: ovsmirrorwatch-worker
+    image: ovsmirrorwatch:latest
+    entrypoint: celery -A ovsmirrorwatch worker --beat --scheduler django --loglevel=info
+    restart: always
+    networks:
+      - ovsmirrorwatch_network
+    volumes:
+      - ovsmirrorwatch_celerybeat:/code/celerybeat-schedule
+    env_file:
+      - .env
+  
+  #ovsmirrorwatch-redis:
+  #  container_name: ovsmirrorwatch-redis
+  #  hostname: ovsmirrorwatch-redis
+  #  image: redis:7.2-rc-alpine
+  #  restart: always
+  #  ports:
+  #    - '6379:6379'
+  #  command: redis-server --save 20 1 --loglevel warning
+  #  volumes: 
+  #    - ovsmirrorwatch_redis_data:/data
+  #  networks:
+  #    - ovsmirrorwatch_network
+
+  #ovsmirrorwatch-caddy:
+  #  image: caddy:2
+  #  container_name: ovsmirrorwatch-caddy
+  #  hostname: ovsmirrorwatch-caddy
+  #  restart: always
+  #  ports:
+  #    - 80:80
+  #    - 443:443
+  #  volumes:
+  #    - ./Caddyfile:/etc/caddy/Caddyfile:ro
+  #     - ovsmirrorwatch_static_volume:/code/static
+  #    - ovsmirrorwatch_media_volume:/code/media
+  #    - ovsmirrorwatch_caddy_data:/data
+  #    - ovsmirrorwatch_caddy_config:/config
+  #  env_file:
+  #    - .env
+  #  networks:
+  #    - ovsmirrorwatch_network    
+
+
+networks:
+  ovsmirrorwatch:
+
+volumes:
+  ovsmirrorwatch_db:
+  ovsmirrorwatch_celerybeat:
